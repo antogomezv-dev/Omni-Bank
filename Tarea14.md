@@ -37,3 +37,20 @@ echo (Configuración analítica para cruce multidimensional de transacciones y p
 echo.
 
 pause
+
+Lo que aprendi:
+Aprendi el analisis avanzado de series temporales acopladas mediante SELF JOIN y filtros por cliente para la identificacion de conductas atipaticas o potencialmente fraudulentas 
+
+FIX
+# Day 14 Answer Key — Extensión de Self JOIN, matriz de productos y anti JOIN
+
+## Expected Result
+Tres cuentas activas carecen de DEPOSIT: ACCT-1001, ACCT-2001 y ACCT-3002. Las dos primeras sí tienen otros movimientos.
+
+## Reference Solution
+```sql
+SELECT a.account_number, a.account_type
+FROM core.accounts a
+LEFT JOIN core.transactions t ON t.account_id = a.account_id AND t.tx_type = 'DEPOSIT'
+WHERE a.is_active AND t.transaction_id IS NULL
+ORDER BY a.account_number;
