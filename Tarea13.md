@@ -1,0 +1,53 @@
+@echo off
+chcp 65001 > nul
+title Tarea 13: Extensión de CTE y Pipeline de Métricas por Cuenta en Omnibank
+
+echo ==============================================================================
+echo   TAREA 13: EXTENSIÓN DE CTE Y PIPELINE DE MÉTRICAS POR CUENTA EN OMNIBANK
+echo ==============================================================================
+echo.
+
+echo WITH activity_by_account AS (
+echo   SELECT
+echo     t.account_id,
+echo     COUNT(*) AS event_count,
+echo     SUM(t.amount) AS cross_volume
+echo   FROM core.transactions AS t
+echo   GROUP BY t.account_id
+echo ),
+echo active_accounts_activity AS (
+echo   SELECT
+echo     a.account_id,
+echo     a.account_number,
+echo     a.currency,
+echo     COALESCE(m.event_count, 0) AS event_count,
+echo     COALESCE(m.cross_volume, 0) AS gross_volume
+echo   FROM core.accounts AS a
+echo   LEFT JOIN activity_by_account AS m
+echo     ON m.account_id = a.account_id
+echo   WHERE a.is_active = TRUE
+echo ),
+echo currency_activity_summary AS (
+echo   SELECT
+echo     currency,
+echo     COUNT(*) AS account_count,
+echo     SUM(gross_volume) AS gross_volume,
+echo     ROUND(AVG(gross_volume), 2) AS average_gross_volume_per_account
+echo   FROM active_accounts_activity
+echo   GROUP BY currency
+echo )
+echo SELECT
+echo   currency,
+echo   account_count,
+echo   gross_volume,
+echo   average_gross_volume_per_account
+echo FROM currency_activity_summary
+echo ORDER BY currency;
+echo.
+
+echo [RESULTADO / TABLA DE CONTROL]
+echo Moneda ^| Cuentas Activas ^| Volumen Bruto ^| Promedio
+echo USD    ^| 4               ^| 800           ^| 200
+echo.
+
+pause
