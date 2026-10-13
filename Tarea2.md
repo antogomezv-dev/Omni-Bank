@@ -52,3 +52,47 @@ echo    - Registro      : Opcional
 echo.
 
 pause
+
+Lo que aprendi:
+Aprendi configuracion de migraciones en entornos de produccion mediante validaciones diferidas (NOT VALID y VALIDATE)para evitar el bloqueo masivos de tablas
+
+FIX
+# Day 02 Answer Key — Refinamiento del ERD de OmniBank
+
+## Expected Result
+
+El ERD base de la actividad debe haber sido actualizado para incluir los tipos de datos en las llaves (UUID en lugar de enteros), constraints anotados (ej. saldos no negativos, UNIQUE para el tax_id), y las nuevas columnas extraídas de los NFRs del Día 1.
+
+## Reference Solution
+
+### Esquema de Relaciones Refinado:
+
+```
+[Clientes] 1 ------------ N [Cuentas]
+- cliente_id (PK, UUID)       - cuenta_id (PK, UUID)
+- nombre                      - cliente_id (FK, UUID)
+- correo                      - moneda
+- telefono                    - tipo_cuenta
+- fecha_nacimiento            - saldo_actual (CHECK: >= 0)
+- tax_id (UNIQUE)             - limite_credito
+- is_active (Soft Delete)     - updated_at (Timestamp NFR)
+
+                   (Cuenta Origen)
+[Cuentas] 1 ------------------------- N [Transacciones]
+                                          - transaccion_id (PK, UUID)
+                   (Cuenta Destino)       - from_account (FK, UUID -> Cuentas)
+[Cuentas] 1 ------------------------- N   - to_account (FK, UUID -> Cuentas)
+                                          - monto
+                                          - tipo_transaccion
+                                          - fecha_completada
+```
+
+## Common Valid Variations
+
+* En lugar de `is_active`, el estudiante podría usar `deleted_at` (Timestamp), lo cual es otro patrón válido para Soft Deletes.
+
+* Anotar el tipo de dato como `GUID` (término general) en lugar de `UUID` (término específico de Postgres).
+
+## Common Mistakes
+
+* **Error crítico:** Olvidar que si la Llave Primaria (PK) cambia a UUID, automáticamente todas las Llaves Foráneas (FK) que apunten a ella también deben ser UUID. No puedes vincular un UUID con un Entero.
